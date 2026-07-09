@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>선생님용 · 출석 확인(수정)</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --ink:#1c1b1a; --ink2:#57534e; --ink3:#8a857e;
+    --paper:#f6f4ef; --card:#ffffff; --line:#e7e3db;
+    --school:#0f766e; --school-bg:#e5f3f0;
+    --bus:#b45309; --bus-bg:#fbf0dc;
+    --walk:#4338ca; --walk-bg:#e9e8fb;
+    --ok:#0f766e; --ok-bg:#e5f3f0;
+    --no:#c2410c; --no-bg:#fbeae1; --no-line:#eebfa2;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:var(--paper);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:560px;margin:0 auto;padding:20px 16px 60px;min-height:100vh}
+  .eyebrow{font-size:12px;font-weight:600;color:var(--ink3);letter-spacing:.02em}
+  h1{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:3px 0 14px}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .chip{flex:1;min-width:72px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center}
+  .chip .n{font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .chip .l{font-size:11px;color:var(--ink3);font-weight:600;margin-top:1px}
+
+  .gsearch{display:flex;gap:8px;margin-bottom:8px}
+  .gsearch input{flex:1;font-family:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;outline:none}
+  .gsearch input:focus{border-color:var(--ink)}
+  #findResult{margin:2px 0 14px;font-size:13px;color:var(--ink2)}
+  #findResult .hit{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 13px;margin-top:7px}
+  #findResult .hit .nm{font-weight:800}
+  #findResult .hit .gg{margin-top:4px;font-size:12.5px;color:var(--ink2);line-height:1.6}
+
+  .cat{margin:18px 0 8px;font-size:13px;font-weight:800;color:var(--ink2);letter-spacing:.01em;display:flex;align-items:center;gap:7px}
+  .dot{width:9px;height:9px;border-radius:3px}
+  .dot.school{background:var(--school)} .dot.bus{background:var(--bus)} .dot.walk{background:var(--walk)}
+
+  .gcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;margin-bottom:9px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .06s}
+  .gcard:active{transform:scale(.99)}
+  .gcard .gmain{flex:1;min-width:0}
+  .gcard .gname{font-size:16px;font-weight:800;letter-spacing:-.01em}
+  .gcard .gmeta{font-size:12.5px;color:var(--ink3);margin-top:2px;font-weight:600}
+  .gcard .gmeta b{color:var(--ink2);font-weight:700}
+  .gcard .gcount{flex:0 0 auto;text-align:center;min-width:52px}
+  .gcard .gcount .cn{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+  .gcard .gcount .cl{font-size:10.5px;color:var(--ink3);font-weight:700;margin-top:2px}
+  .gcard .chev{flex:0 0 auto;color:var(--ink3);font-size:20px}
+  .lschool{border-left:4px solid var(--school)}
+  .lbus{border-left:4px solid var(--bus)}
+  .lwalk{border-left:4px solid var(--walk)}
+
+  .hidden{display:none}
+  .back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--ink2);background:none;border:none;padding:6px 0;cursor:pointer;margin-bottom:8px;font-family:inherit}
+  .rhead{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;margin-bottom:10px}
+  .rhead .rt{font-size:19px;font-weight:800;letter-spacing:-.01em}
+  .rhead .rm{font-size:13px;color:var(--ink2);margin-top:3px;font-weight:600}
+  .rhead .rm b{color:var(--ink)}
+  .counter{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .counter .big{font-size:15px;font-weight:800;white-space:nowrap}
+  .counter .big .on{color:var(--ok)} .counter .big .sl{color:var(--ink3);margin:0 3px}
+  .counter .big .ab{color:var(--no);margin-left:8px;font-size:13.5px}
+  .counter .bar{flex:1;height:8px;background:var(--no-bg);border-radius:99px;overflow:hidden}
+  .counter .bar i{display:block;height:100%;background:var(--ok);width:100%;transition:width .2s}
+
+  .guide{font-size:12px;color:var(--ink3);margin:0 2px 10px;line-height:1.5}
+  .guide b{color:var(--no);font-weight:800}
+  .rtools{display:flex;gap:8px;margin-bottom:10px}
+  .rtools input{flex:1;font-family:inherit;font-size:14px;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;outline:none}
+  .rtools input:focus{border-color:var(--ink)}
+  .btn{font-family:inherit;font-size:13px;font-weight:700;border:1.5px solid var(--line);background:var(--card);color:var(--ink2);border-radius:10px;padding:9px 12px;cursor:pointer;white-space:nowrap}
+  .btn:active{background:var(--paper)}
+
+  ul.roster{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  ul.roster li{display:flex;align-items:center;gap:12px;padding:12px 15px;border-top:1px solid var(--line);cursor:pointer}
+  ul.roster li:first-child{border-top:none}
+  ul.roster li.off{background:var(--no-bg)}
+  .idx{flex:0 0 auto;width:22px;font-size:12px;color:var(--ink3);font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+  .sid{flex:0 0 auto;font-size:14px;color:var(--ink2);font-weight:700;font-variant-numeric:tabular-nums;width:44px}
+  .nm{flex:1;min-width:0;font-size:16px;font-weight:700}
+  li.off .nm{color:var(--no)}
+  .bus{flex:0 0 auto;font-size:11.5px;font-weight:800;color:var(--bus);background:var(--bus-bg);padding:3px 8px;border-radius:99px}
+  li.off .bus{opacity:.55}
+  .status{flex:0 0 auto;min-width:56px;text-align:center;font-size:12.5px;font-weight:800;padding:5px 0;border-radius:8px}
+  li:not(.off) .status{color:var(--ok);background:var(--ok-bg)}
+  li.off .status{color:#fff;background:var(--no)}
+  .rfoot{margin-top:12px}
+  .absent{font-size:13px;color:var(--ink2);line-height:1.7;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .absent .hd{font-weight:800;color:var(--no)}
+  .absent .ok{font-weight:800;color:var(--ok)}
+  .note{font-size:11.5px;color:var(--ink3);text-align:center;margin-top:22px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="home">
+    <div class="eyebrow">2026학년도 1학기말 · 1·2학년 진로탐색 프로그램 (최종)</div>
+    <h1>선생님용 · 출석 확인(수정)</h1>
+    <div class="chips" id="chips"></div>
+    <div class="gsearch"><input id="find" placeholder="학번·이름으로 학생 위치 찾기" autocomplete="off"></div>
+    <div id="findResult"></div>
+    <div id="groupList"></div>
+    <p class="note">기본값은 전원 출석입니다. 결석·미참여 학생만 체크하세요. 체크 기록은 이 기기(브라우저)에만 저장되며, 다른 선생님 기기와 자동으로 공유되지 않습니다.</p>
+  </div>
+
+  <div id="roster" class="hidden">
+    <button class="back" id="back">‹ 그룹 목록</button>
+    <div class="rhead" id="rhead"></div>
+    <p class="guide">모두 출석 상태입니다. <b>결석인 학생만 눌러</b> 미출석으로 표시하세요.</p>
+    <div class="rtools">
+      <input id="rfilter" placeholder="이름·학번 검색" autocomplete="off">
+      <button class="btn" id="resetAll">모두 출석</button>
+    </div>
+    <ul class="roster" id="rlist"></ul>
+    <div class="rfoot"><div class="absent" id="absent"></div></div>
+  </div>
+</div>
+
+<script>
+const DATA = {"meta": {"total": 374, "cat_totals": {"교내 · 1·2교시": 214, "교내 · 3·4교시": 214, "두원공대 · 버스": 73, "한경대 · 도보": 87}}, "groups": [{"id": "c12_0", "cat": "교내 · 1·2교시", "name": "1학년 1, 2반", "sub": "시청각실", "teacher": "강보라", "students": [{"sid": "1101", "name": "강유정"}, {"sid": "1103", "name": "구민솔"}, {"sid": "1104", "name": "김나현"}, {"sid": "1106", "name": "김세아"}, {"sid": "1107", "name": "김은서"}, {"sid": "1108", "name": "김지원"}, {"sid": "1109", "name": "김지윤"}, {"sid": "1110", "name": "김태현"}, {"sid": "1112", "name": "박민주"}, {"sid": "1113", "name": "박선희"}, {"sid": "1114", "name": "박정민"}, {"sid": "1116", "name": "박혜빈"}, {"sid": "1118", "name": "설윤선"}, {"sid": "1119", "name": "유수지"}, {"sid": "1120", "name": "유정인"}, {"sid": "1123", "name": "이은송"}, {"sid": "1124", "name": "이한음"}, {"sid": "1128", "name": "전예원"}, {"sid": "1131", "name": "정여진"}, {"sid": "1132", "name": "정연지"}, {"sid": "1133", "name": "최시아"}, {"sid": "1201", "name": "유정희"}, {"sid": "1202", "name": "김나임"}, {"sid": "1203", "name": "김나현"}, {"sid": "1204", "name": "김수아"}, {"sid": "1206", "name": "김지혜"}, {"sid": "1207", "name": "김하윤"}, {"sid": "1210", "name": "남다빈"}, {"sid": "1216", "name": "신지율"}, {"sid": "1217", "name": "심지아"}, {"sid": "1224", "name": "유성희"}, {"sid": "1225", "name": "이서연"}, {"sid": "1227", "name": "이세아"}, {"sid": "1228", "name": "이수인"}, {"sid": "1233", "name": "정보영"}, {"sid": "1234", "name": "천수빈"}]}, {"id": "c12_1", "cat": "교내 · 1·2교시", "name": "1학년 3, 4반", "sub": "대처실", "teacher": "김학성", "students": [{"sid": "1301", "name": "강혜원"}, {"sid": "1303", "name": "김순민"}, {"sid": "1305", "name": "김채빈"}, {"sid": "1306", "name": "김현채"}, {"sid": "1307", "name": "노은서"}, {"sid": "1308", "name": "박수연"}, {"sid": "1314", "name": "양하람"}, {"sid": "1316", "name": "우주희"}, {"sid": "1317", "name": "유나연"}, {"sid": "1318", "name": "유채원"}, {"sid": "1319", "name": "윤하나"}, {"sid": "1320", "name": "이민정"}, {"sid": "1322", "name": "이송난"}, {"sid": "1323", "name": "이시은"}, {"sid": "1326", "name": "이현정"}, {"sid": "1327", "name": "장은유"}, {"sid": "1328", "name": "전이른"}, {"sid": "1329", "name": "정예지"}, {"sid": "1330", "name": "최지후"}, {"sid": "1333", "name": "한주은"}, {"sid": "1402", "name": "강다흰"}, {"sid": "1403", "name": "강람희"}, {"sid": "1404", "name": "김다은"}, {"sid": "1405", "name": "김수겸"}, {"sid": "1408", "name": "김은빈"}, {"sid": "1413", "name": "문서현"}, {"sid": "1415", "name": "배수빈"}, {"sid": "1416", "name": "서혜인"}, {"sid": "1420", "name": "오수안"}, {"sid": "1425", "name": "이다현"}, {"sid": "1427", "name": "이예지"}, {"sid": "1430", "name": "정다인"}]}, {"id": "c12_2", "cat": "교내 · 1·2교시", "name": "1학년 5, 6반", "sub": "엘리자베스실", "teacher": "김석희", "students": [{"sid": "1503", "name": "김나현"}, {"sid": "1508", "name": "김지희"}, {"sid": "1511", "name": "박서연"}, {"sid": "1512", "name": "박지연"}, {"sid": "1518", "name": "우태영"}, {"sid": "1520", "name": "유소현"}, {"sid": "1521", "name": "유원희"}, {"sid": "1522", "name": "이다은"}, {"sid": "1528", "name": "정채원"}, {"sid": "1529", "name": "정혜나"}, {"sid": "1530", "name": "한다은"}, {"sid": "1531", "name": "한송현"}, {"sid": "1534", "name": "황인아"}, {"sid": "1601", "name": "강민진"}, {"sid": "1602", "name": "고하임"}, {"sid": "1603", "name": "김가현"}, {"sid": "1608", "name": "김하현"}, {"sid": "1612", "name": "박유나"}, {"sid": "1613", "name": "박현정"}, {"sid": "1614", "name": "배새연"}, {"sid": "1616", "name": "변다혜"}, {"sid": "1617", "name": "서아라"}, {"sid": "1619", "name": "설하진"}, {"sid": "1620", "name": "송수빈"}, {"sid": "1622", "name": "윤서영"}, {"sid": "1623", "name": "윤하영"}, {"sid": "1624", "name": "이나경"}, {"sid": "1625", "name": "이다은"}, {"sid": "1626", "name": "이설"}, {"sid": "1628", "name": "이효리"}, {"sid": "1629", "name": "임지현"}, {"sid": "1630", "name": "임현진"}, {"sid": "1633", "name": "최가은"}]}, {"id": "c12_3", "cat": "교내 · 1·2교시", "name": "2학년 1, 2반", "sub": "다목적실", "teacher": "김호정", "students": [{"sid": "2108", "name": "맹민영"}, {"sid": "2109", "name": "박소율"}, {"sid": "2110", "name": "박수진"}, {"sid": "2111", "name": "박지수"}, {"sid": "2114", "name": "오지은"}, {"sid": "2115", "name": "원유현"}, {"sid": "2117", "name": "유수민"}, {"sid": "2118", "name": "유수빈"}, {"sid": "2119", "name": "유초연"}, {"sid": "2120", "name": "유혜리"}, {"sid": "2124", "name": "장유정"}, {"sid": "2125", "name": "정수민"}, {"sid": "2126", "name": "정영선"}, {"sid": "2127", "name": "정은별"}, {"sid": "2128", "name": "조정희"}, {"sid": "2129", "name": "최승아"}, {"sid": "2132", "name": "황수민"}, {"sid": "2201", "name": "박이리나"}, {"sid": "2203", "name": "김가인"}, {"sid": "2204", "name": "김규영"}, {"sid": "2205", "name": "김나현"}, {"sid": "2207", "name": "김도연"}, {"sid": "2208", "name": "김수진"}, {"sid": "2210", "name": "김지우"}, {"sid": "2211", "name": "김현진"}, {"sid": "2213", "name": "민아영"}, {"sid": "2214", "name": "박나율"}, {"sid": "2215", "name": "박별"}, {"sid": "2216", "name": "박서진"}, {"sid": "2217", "name": "서미량"}, {"sid": "2218", "name": "서유나"}, {"sid": "2219", "name": "서유빈"}, {"sid": "2220", "name": "성아연"}, {"sid": "2222", "name": "오유빈"}, {"sid": "2224", "name": "윤수아"}, {"sid": "2225", "name": "이다영"}, {"sid": "2226", "name": "이연서"}, {"sid": "2228", "name": "정다은"}, {"sid": "2229", "name": "조민서"}, {"sid": "2230", "name": "차민지"}, {"sid": "2231", "name": "최수연"}, {"sid": "2232", "name": "한지민"}]}, {"id": "c12_4", "cat": "교내 · 1·2교시", "name": "2학년 3, 4반", "sub": "힐러리실", "teacher": "윤소영", "students": [{"sid": "2305", "name": "노하윤"}, {"sid": "2308", "name": "박지은"}, {"sid": "2309", "name": "방현화"}, {"sid": "2313", "name": "신효민"}, {"sid": "2314", "name": "오하린"}, {"sid": "2315", "name": "유선민"}, {"sid": "2317", "name": "윤이정"}, {"sid": "2321", "name": "이태린"}, {"sid": "2323", "name": "임해린"}, {"sid": "2327", "name": "최승빈"}, {"sid": "2328", "name": "최예지"}, {"sid": "2329", "name": "한소을"}, {"sid": "2330", "name": "홍준이"}, {"sid": "2402", "name": "권순빈"}, {"sid": "2403", "name": "김모시"}, {"sid": "2405", "name": "김수연"}, {"sid": "2407", "name": "김예은"}, {"sid": "2409", "name": "김채은"}, {"sid": "2410", "name": "류지민"}, {"sid": "2412", "name": "박한별"}, {"sid": "2414", "name": "송채원"}, {"sid": "2415", "name": "유아현"}, {"sid": "2418", "name": "이윤지"}, {"sid": "2421", "name": "장지현"}, {"sid": "2422", "name": "전서현"}, {"sid": "2423", "name": "전하진"}, {"sid": "2425", "name": "정지원"}, {"sid": "2427", "name": "정한빈"}, {"sid": "2428", "name": "한예원"}, {"sid": "2429", "name": "허유정"}, {"sid": "2431", "name": "홍수민"}]}, {"id": "c12_5", "cat": "교내 · 1·2교시", "name": "2학년 5, 6반", "sub": "사임당실", "teacher": "김소현(사)", "students": [{"sid": "2503", "name": "김미나"}, {"sid": "2504", "name": "김보윤"}, {"sid": "2506", "name": "김예린"}, {"sid": "2507", "name": "김예림"}, {"sid": "2508", "name": "김예진"}, {"sid": "2509", "name": "김지민"}, {"sid": "2511", "name": "남유진"}, {"sid": "2512", "name": "박가영"}, {"sid": "2513", "name": "박지영"}, {"sid": "2514", "name": "박한솔"}, {"sid": "2516", "name": "서하선"}, {"sid": "2517", "name": "손채경"}, {"sid": "2518", "name": "송윤아"}, {"sid": "2519", "name": "신현주"}, {"sid": "2520", "name": "염지희"}, {"sid": "2523", "name": "유하은"}, {"sid": "2524", "name": "윤승주"}, {"sid": "2526", "name": "이은서"}, {"sid": "2528", "name": "임수빈"}, {"sid": "2530", "name": "최연우"}, {"sid": "2532", "name": "한지원"}, {"sid": "2601", "name": "강지우"}, {"sid": "2603", "name": "기수빈"}, {"sid": "2605", "name": "김민서"}, {"sid": "2607", "name": "김주리"}, {"sid": "2608", "name": "박서원"}, {"sid": "2609", "name": "서나희"}, {"sid": "2612", "name": "신민주"}, {"sid": "2613", "name": "안서영"}, {"sid": "2616", "name": "원지우"}, {"sid": "2617", "name": "유서영"}, {"sid": "2618", "name": "이다연"}, {"sid": "2619", "name": "이송연"}, {"sid": "2620", "name": "이승윤"}, {"sid": "2621", "name": "이영화"}, {"sid": "2622", "name": "이재이"}, {"sid": "2623", "name": "이주은"}, {"sid": "2626", "name": "최시연"}, {"sid": "2629", "name": "황경서"}, {"sid": "2631", "name": "황영용"}]}, {"id": "c34_0", "cat": "교내 · 3·4교시", "name": "의생명계열", "sub": "사임당실", "teacher": "오장한", "students": [{"sid": "1101", "name": "강유정"}, {"sid": "1107", "name": "김은서"}, {"sid": "1108", "name": "김지원"}, {"sid": "1120", "name": "유정인"}, {"sid": "1128", "name": "전예원"}, {"sid": "1204", "name": "김수아"}, {"sid": "1234", "name": "천수빈"}, {"sid": "1330", "name": "최지후"}, {"sid": "1413", "name": "문서현"}, {"sid": "1425", "name": "이다현"}, {"sid": "1511", "name": "박서연"}, {"sid": "1518", "name": "우태영"}, {"sid": "1522", "name": "이다은"}, {"sid": "1529", "name": "정혜나"}, {"sid": "1534", "name": "황인아"}, {"sid": "2210", "name": "김지우"}, {"sid": "2308", "name": "박지은"}, {"sid": "2309", "name": "방현화"}, {"sid": "2328", "name": "최예지"}, {"sid": "2409", "name": "김채은"}, {"sid": "2418", "name": "이윤지"}, {"sid": "2421", "name": "장지현"}, {"sid": "2427", "name": "정한빈"}, {"sid": "2431", "name": "홍수민"}, {"sid": "2504", "name": "김보윤"}, {"sid": "2512", "name": "박가영"}, {"sid": "2518", "name": "송윤아"}, {"sid": "2609", "name": "서나희"}, {"sid": "2612", "name": "신민주"}, {"sid": "2613", "name": "안서영"}, {"sid": "2621", "name": "이영화"}, {"sid": "2626", "name": "최시연"}]}, {"id": "c34_1", "cat": "교내 · 3·4교시", "name": "이공계열", "sub": "시청각실", "teacher": "이보미", "students": [{"sid": "1109", "name": "김지윤"}, {"sid": "1116", "name": "박혜빈"}, {"sid": "1203", "name": "김나현"}, {"sid": "1206", "name": "김지혜"}, {"sid": "1207", "name": "김하윤"}, {"sid": "1301", "name": "강혜원"}, {"sid": "1305", "name": "김채빈"}, {"sid": "1316", "name": "우주희"}, {"sid": "1329", "name": "정예지"}, {"sid": "1402", "name": "강다흰"}, {"sid": "1404", "name": "김다은"}, {"sid": "1512", "name": "박지연"}, {"sid": "1603", "name": "김가현"}, {"sid": "1612", "name": "박유나"}, {"sid": "1616", "name": "변다혜"}, {"sid": "1620", "name": "송수빈"}, {"sid": "1624", "name": "이나경"}, {"sid": "2108", "name": "맹민영"}, {"sid": "2110", "name": "박수진"}, {"sid": "2111", "name": "박지수"}, {"sid": "2114", "name": "오지은"}, {"sid": "2118", "name": "유수빈"}, {"sid": "2125", "name": "정수민"}, {"sid": "2317", "name": "윤이정"}, {"sid": "2405", "name": "김수연"}, {"sid": "2422", "name": "전서현"}, {"sid": "2425", "name": "정지원"}, {"sid": "2506", "name": "김예린"}, {"sid": "2508", "name": "김예진"}, {"sid": "2509", "name": "김지민"}, {"sid": "2516", "name": "서하선"}, {"sid": "2517", "name": "손채경"}, {"sid": "2528", "name": "임수빈"}, {"sid": "2530", "name": "최연우"}, {"sid": "2532", "name": "한지원"}, {"sid": "2605", "name": "김민서"}, {"sid": "2607", "name": "김주리"}, {"sid": "2617", "name": "유서영"}, {"sid": "2618", "name": "이다연"}, {"sid": "2620", "name": "이승윤"}, {"sid": "2629", "name": "황경서"}]}, {"id": "c34_2", "cat": "교내 · 3·4교시", "name": "인문사회상경계열 1반", "sub": "힐러리실", "teacher": "강현수", "students": [{"sid": "1103", "name": "구민솔"}, {"sid": "1104", "name": "김나현"}, {"sid": "1106", "name": "김세아"}, {"sid": "1110", "name": "김태현"}, {"sid": "1112", "name": "박민주"}, {"sid": "1113", "name": "박선희"}, {"sid": "1114", "name": "박정민"}, {"sid": "1118", "name": "설윤선"}, {"sid": "1119", "name": "유수지"}, {"sid": "1123", "name": "이은송"}, {"sid": "1124", "name": "이한음"}, {"sid": "1131", "name": "정여진"}, {"sid": "1132", "name": "정연지"}, {"sid": "1133", "name": "최시아"}, {"sid": "1201", "name": "유정희"}, {"sid": "1202", "name": "김나임"}, {"sid": "1210", "name": "남다빈"}, {"sid": "1216", "name": "신지율"}, {"sid": "1217", "name": "심지아"}, {"sid": "1224", "name": "유성희"}, {"sid": "1225", "name": "이서연"}, {"sid": "1227", "name": "이세아"}, {"sid": "1228", "name": "이수인"}, {"sid": "1233", "name": "정보영"}, {"sid": "1303", "name": "김순민"}, {"sid": "1306", "name": "김현채"}, {"sid": "1307", "name": "노은서"}, {"sid": "1308", "name": "박수연"}, {"sid": "1314", "name": "양하람"}, {"sid": "1317", "name": "유나연"}, {"sid": "1318", "name": "유채원"}, {"sid": "1319", "name": "윤하나"}, {"sid": "1320", "name": "이민정"}, {"sid": "1322", "name": "이송난"}]}, {"id": "c34_3", "cat": "교내 · 3·4교시", "name": "인문사회상경계열 2반", "sub": "다목적실", "teacher": "김지은", "students": [{"sid": "1323", "name": "이시은"}, {"sid": "1326", "name": "이현정"}, {"sid": "1327", "name": "장은유"}, {"sid": "1328", "name": "전이른"}, {"sid": "1333", "name": "한주은"}, {"sid": "1403", "name": "강람희"}, {"sid": "1405", "name": "김수겸"}, {"sid": "1408", "name": "김은빈"}, {"sid": "1415", "name": "배수빈"}, {"sid": "1416", "name": "서혜인"}, {"sid": "1420", "name": "오수안"}, {"sid": "1427", "name": "이예지"}, {"sid": "1430", "name": "정다인"}, {"sid": "1503", "name": "김나현"}, {"sid": "1508", "name": "김지희"}, {"sid": "1520", "name": "유소현"}, {"sid": "1521", "name": "유원희"}, {"sid": "1528", "name": "정채원"}, {"sid": "1530", "name": "한다은"}, {"sid": "1531", "name": "한송현"}, {"sid": "1601", "name": "강민진"}, {"sid": "1602", "name": "고하임"}, {"sid": "1608", "name": "김하현"}, {"sid": "1613", "name": "박현정"}, {"sid": "1614", "name": "배새연"}, {"sid": "1617", "name": "서아라"}, {"sid": "1619", "name": "설하진"}, {"sid": "1622", "name": "윤서영"}, {"sid": "1623", "name": "윤하영"}, {"sid": "1625", "name": "이다은"}, {"sid": "1626", "name": "이설"}, {"sid": "1628", "name": "이효리"}, {"sid": "1629", "name": "임지현"}, {"sid": "1630", "name": "임현진"}, {"sid": "1633", "name": "최가은"}]}, {"id": "c34_4", "cat": "교내 · 3·4교시", "name": "인문사회상경계열 3반", "sub": "엘리자베스실", "teacher": "김선영", "students": [{"sid": "2109", "name": "박소율"}, {"sid": "2115", "name": "원유현"}, {"sid": "2117", "name": "유수민"}, {"sid": "2119", "name": "유초연"}, {"sid": "2120", "name": "유혜리"}, {"sid": "2124", "name": "장유정"}, {"sid": "2126", "name": "정영선"}, {"sid": "2127", "name": "정은별"}, {"sid": "2128", "name": "조정희"}, {"sid": "2129", "name": "최승아"}, {"sid": "2132", "name": "황수민"}, {"sid": "2201", "name": "박이리나"}, {"sid": "2203", "name": "김가인"}, {"sid": "2204", "name": "김규영"}, {"sid": "2205", "name": "김나현"}, {"sid": "2207", "name": "김도연"}, {"sid": "2208", "name": "김수진"}, {"sid": "2211", "name": "김현진"}, {"sid": "2213", "name": "민아영"}, {"sid": "2214", "name": "박나율"}, {"sid": "2215", "name": "박별"}, {"sid": "2216", "name": "박서진"}, {"sid": "2217", "name": "서미량"}, {"sid": "2218", "name": "서유나"}, {"sid": "2219", "name": "서유빈"}, {"sid": "2220", "name": "성아연"}, {"sid": "2222", "name": "오유빈"}, {"sid": "2224", "name": "윤수아"}, {"sid": "2225", "name": "이다영"}, {"sid": "2226", "name": "이연서"}, {"sid": "2228", "name": "정다은"}, {"sid": "2229", "name": "조민서"}, {"sid": "2230", "name": "차민지"}, {"sid": "2231", "name": "최수연"}, {"sid": "2232", "name": "한지민"}, {"sid": "2305", "name": "노하윤"}]}, {"id": "c34_5", "cat": "교내 · 3·4교시", "name": "인문사회상경계열 4반", "sub": "대처실", "teacher": "유낙형", "students": [{"sid": "2313", "name": "신효민"}, {"sid": "2314", "name": "오하린"}, {"sid": "2315", "name": "유선민"}, {"sid": "2321", "name": "이태린"}, {"sid": "2323", "name": "임해린"}, {"sid": "2327", "name": "최승빈"}, {"sid": "2329", "name": "한소을"}, {"sid": "2330", "name": "홍준이"}, {"sid": "2402", "name": "권순빈"}, {"sid": "2403", "name": "김모시"}, {"sid": "2407", "name": "김예은"}, {"sid": "2410", "name": "류지민"}, {"sid": "2412", "name": "박한별"}, {"sid": "2414", "name": "송채원"}, {"sid": "2415", "name": "유아현"}, {"sid": "2423", "name": "전하진"}, {"sid": "2428", "name": "한예원"}, {"sid": "2429", "name": "허유정"}, {"sid": "2503", "name": "김미나"}, {"sid": "2507", "name": "김예림"}, {"sid": "2511", "name": "남유진"}, {"sid": "2513", "name": "박지영"}, {"sid": "2514", "name": "박한솔"}, {"sid": "2519", "name": "신현주"}, {"sid": "2520", "name": "염지희"}, {"sid": "2523", "name": "유하은"}, {"sid": "2524", "name": "윤승주"}, {"sid": "2526", "name": "이은서"}, {"sid": "2601", "name": "강지우"}, {"sid": "2603", "name": "기수빈"}, {"sid": "2608", "name": "박서원"}, {"sid": "2616", "name": "원지우"}, {"sid": "2619", "name": "이송연"}, {"sid": "2622", "name": "이재이"}, {"sid": "2623", "name": "이주은"}, {"sid": "2631", "name": "황영용"}]}, {"id": "d_0", "cat": "두원공대 · 버스", "name": "유아교육과", "sub": "두원공대", "teacher": "이민영, 김가연", "students": [{"sid": "1102", "name": "고예빈", "bus": "1호차"}, {"sid": "1211", "name": "남승아", "bus": "1호차"}, {"sid": "1212", "name": "박예진", "bus": "1호차"}, {"sid": "1215", "name": "송연아", "bus": "1호차"}, {"sid": "1221", "name": "염지윤", "bus": "1호차"}, {"sid": "1230", "name": "장윤서", "bus": "1호차"}, {"sid": "1232", "name": "정도연", "bus": "1호차"}, {"sid": "1304", "name": "김은새", "bus": "1호차"}, {"sid": "1309", "name": "박여진", "bus": "1호차"}, {"sid": "1321", "name": "이서린", "bus": "1호차"}, {"sid": "1426", "name": "이예린", "bus": "1호차"}, {"sid": "1432", "name": "조윤솔", "bus": "1호차"}, {"sid": "1516", "name": "신예은", "bus": "1호차"}, {"sid": "1533", "name": "홍희진", "bus": "1호차"}, {"sid": "1604", "name": "김나연", "bus": "1호차"}, {"sid": "1621", "name": "유지민", "bus": "1호차"}, {"sid": "2102", "name": "김가연", "bus": "1호차"}, {"sid": "2106", "name": "김지우", "bus": "1호차"}, {"sid": "2123", "name": "임윤서", "bus": "1호차"}, {"sid": "2202", "name": "강나원", "bus": "1호차"}, {"sid": "2206", "name": "김남주", "bus": "1호차"}, {"sid": "2221", "name": "신윤아", "bus": "1호차"}, {"sid": "2227", "name": "이현아", "bus": "1호차"}, {"sid": "2233", "name": "홍채원", "bus": "1호차"}, {"sid": "2307", "name": "박서희", "bus": "1호차"}, {"sid": "2316", "name": "유지현", "bus": "1호차"}, {"sid": "2406", "name": "김예담", "bus": "1호차"}, {"sid": "2430", "name": "허지연", "bus": "1호차"}, {"sid": "2502", "name": "김나연", "bus": "1호차"}, {"sid": "2627", "name": "한서연", "bus": "1호차"}]}, {"id": "d_1", "cat": "두원공대 · 버스", "name": "간호학과1", "sub": "두원공대", "teacher": "윤유선", "students": [{"sid": "1422", "name": "유하은", "bus": "2호차"}, {"sid": "1424", "name": "이다인", "bus": "2호차"}, {"sid": "1429", "name": "이지은", "bus": "2호차"}, {"sid": "1433", "name": "편수예", "bus": "2호차"}, {"sid": "1501", "name": "고다윤", "bus": "2호차"}, {"sid": "1507", "name": "김지효", "bus": "2호차"}, {"sid": "1606", "name": "김영은", "bus": "2호차"}, {"sid": "1609", "name": "김현서", "bus": "2호차"}, {"sid": "2101", "name": "곽지나", "bus": "1호차"}, {"sid": "2419", "name": "이채원", "bus": "1호차"}, {"sid": "2505", "name": "김세은", "bus": "1호차"}, {"sid": "2521", "name": "오유미", "bus": "1호차"}, {"sid": "2602", "name": "구도연", "bus": "1호차"}, {"sid": "2604", "name": "김나연", "bus": "1호차"}, {"sid": "2632", "name": "박시율", "bus": "1호차"}]}, {"id": "d_2", "cat": "두원공대 · 버스", "name": "간호학과2", "sub": "두원공대", "teacher": "장민주, 박주현", "students": [{"sid": "1111", "name": "박다연", "bus": "2호차"}, {"sid": "1222", "name": "오율린", "bus": "2호차"}, {"sid": "1231", "name": "장지유", "bus": "2호차"}, {"sid": "1310", "name": "박지현", "bus": "2호차"}, {"sid": "1406", "name": "김수연", "bus": "2호차"}, {"sid": "1412", "name": "류윤서", "bus": "2호차"}, {"sid": "1414", "name": "박수진", "bus": "2호차"}, {"sid": "1418", "name": "손아연", "bus": "2호차"}, {"sid": "1421", "name": "유지영", "bus": "2호차"}, {"sid": "1423", "name": "이다은", "bus": "2호차"}, {"sid": "1510", "name": "박가희", "bus": "2호차"}, {"sid": "1514", "name": "서보경", "bus": "2호차"}, {"sid": "1523", "name": "이보원", "bus": "2호차"}, {"sid": "1524", "name": "이서현", "bus": "2호차"}, {"sid": "1526", "name": "장나은", "bus": "2호차"}, {"sid": "1527", "name": "정소민", "bus": "2호차"}, {"sid": "1615", "name": "백다인", "bus": "2호차"}, {"sid": "1627", "name": "이예지", "bus": "2호차"}, {"sid": "2122", "name": "이다은", "bus": "2호차"}, {"sid": "2131", "name": "한지민", "bus": "2호차"}, {"sid": "2320", "name": "이채원", "bus": "2호차"}, {"sid": "2322", "name": "임지연", "bus": "2호차"}, {"sid": "2326", "name": "조은", "bus": "2호차"}, {"sid": "2401", "name": "안나", "bus": "2호차"}, {"sid": "2424", "name": "정민서", "bus": "2호차"}, {"sid": "2529", "name": "조수빈", "bus": "2호차"}, {"sid": "2628", "name": "함소연", "bus": "2호차"}, {"sid": "2630", "name": "황승주", "bus": "2호차"}]}, {"id": "h_0", "cat": "한경대 · 도보", "name": "법학전공", "sub": "한경대", "teacher": "길다빈, 김예주", "students": [{"sid": "1115", "name": "박현정"}, {"sid": "1117", "name": "서하윤"}, {"sid": "1205", "name": "김수인"}, {"sid": "1208", "name": "김하음"}, {"sid": "1214", "name": "소채은"}, {"sid": "1219", "name": "안효은"}, {"sid": "1223", "name": "오혜선"}, {"sid": "1229", "name": "이채령"}, {"sid": "1302", "name": "고혜령"}, {"sid": "1311", "name": "손예원"}, {"sid": "1315", "name": "양희우"}, {"sid": "1401", "name": "이토리"}, {"sid": "1411", "name": "김현이"}, {"sid": "1431", "name": "정예린"}, {"sid": "1502", "name": "고희주"}, {"sid": "1505", "name": "김서한"}, {"sid": "1611", "name": "문시연"}, {"sid": "1631", "name": "정유진"}, {"sid": "2105", "name": "김시예"}, {"sid": "2112", "name": "박효원"}, {"sid": "2209", "name": "김윤정"}, {"sid": "2223", "name": "유세영"}, {"sid": "2303", "name": "김현주"}, {"sid": "2306", "name": "민가인"}, {"sid": "2311", "name": "서아림"}, {"sid": "2318", "name": "이가율"}, {"sid": "2432", "name": "홍지예"}, {"sid": "2510", "name": "김채은"}, {"sid": "2606", "name": "김재희"}, {"sid": "2624", "name": "임송현"}]}, {"id": "h_1", "cat": "한경대 · 도보", "name": "동물응용과학전공", "sub": "한경대", "teacher": "김태원, 한애지", "students": [{"sid": "1122", "name": "이유진"}, {"sid": "1331", "name": "태윤하"}, {"sid": "1334", "name": "현수민"}, {"sid": "1410", "name": "김태희"}, {"sid": "1434", "name": "정미나"}, {"sid": "1504", "name": "김민서"}, {"sid": "1506", "name": "김시온"}, {"sid": "1509", "name": "나사랑"}, {"sid": "1513", "name": "배수현"}, {"sid": "1515", "name": "성현서"}, {"sid": "1519", "name": "유다운"}, {"sid": "1532", "name": "홍시우"}, {"sid": "2103", "name": "김민서"}, {"sid": "2107", "name": "김태희"}, {"sid": "2113", "name": "안지민"}, {"sid": "2301", "name": "고민선"}, {"sid": "2312", "name": "손예령"}, {"sid": "2325", "name": "조민아"}, {"sid": "2331", "name": "황시연"}, {"sid": "2332", "name": "황연후"}, {"sid": "2411", "name": "박윤이"}, {"sid": "2416", "name": "유지민"}, {"sid": "2426", "name": "정하윤"}, {"sid": "2501", "name": "강유린"}, {"sid": "2515", "name": "서지우"}, {"sid": "2527", "name": "이현지"}, {"sid": "2531", "name": "최윤지"}, {"sid": "2615", "name": "안소정"}, {"sid": "2625", "name": "차은송"}]}, {"id": "h_2", "cat": "한경대 · 도보", "name": "생명공학", "sub": "한경대", "teacher": "김민철, 김진주", "students": [{"sid": "1105", "name": "김루아"}, {"sid": "1121", "name": "이서영"}, {"sid": "1125", "name": "임수하"}, {"sid": "1129", "name": "전해윤"}, {"sid": "1130", "name": "정가율"}, {"sid": "1134", "name": "홍민지"}, {"sid": "1209", "name": "김효진"}, {"sid": "1220", "name": "엄주은"}, {"sid": "1226", "name": "이선정"}, {"sid": "1312", "name": "손효주"}, {"sid": "1324", "name": "이연희"}, {"sid": "1332", "name": "한예슬"}, {"sid": "1407", "name": "김영현"}, {"sid": "1417", "name": "소민서"}, {"sid": "1525", "name": "임예림"}, {"sid": "1605", "name": "김단아"}, {"sid": "1607", "name": "김채는"}, {"sid": "1618", "name": "서지윤"}, {"sid": "2104", "name": "김선아"}, {"sid": "2121", "name": "윤수현"}, {"sid": "2130", "name": "최유나"}, {"sid": "2304", "name": "나혜원"}, {"sid": "2319", "name": "이민서"}, {"sid": "2420", "name": "장주은"}, {"sid": "2522", "name": "위채연"}, {"sid": "2525", "name": "이예진"}, {"sid": "2611", "name": "송예찬"}, {"sid": "2614", "name": "안세연"}]}]};
+const GROUPS = DATA.groups;
+const META = DATA.meta;
+const $ = id => document.getElementById(id);
+const norm = s => (s||'').replace(/\s+/g,'').trim();
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+
+// storage holds ABSENT sids per group; graceful fallback
+const mem={};
+function load(k){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):[]}catch(e){return mem[k]||[]} }
+function save(k,a){ try{localStorage.setItem(k,JSON.stringify(a))}catch(e){mem[k]=a} }
+
+const catClass=c=>c.startsWith('교내')?'school':(c.startsWith('두원')?'bus':'walk');
+
+function renderChips(){
+  const t=META.cat_totals;
+  const items=[['전체',META.total],['교내 특강',t['교내 · 1·2교시']||0],['두원공대',t['두원공대 · 버스']||0],['한경대',t['한경대 · 도보']||0]];
+  $('chips').innerHTML=items.map(([l,n])=>`<div class="chip"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+}
+function renderGroups(){
+  const cats=[]; GROUPS.forEach(g=>{if(!cats.includes(g.cat))cats.push(g.cat)});
+  let html='';
+  cats.forEach(cat=>{
+    const cc=catClass(cat);
+    html+=`<div class="cat"><span class="dot ${cc}"></span>${esc(cat)}</div>`;
+    GROUPS.filter(g=>g.cat===cat).forEach(g=>{
+      html+=`<div class="gcard l${cc}" data-id="${g.id}">
+        <div class="gmain"><div class="gname">${esc(g.name)}</div>
+        <div class="gmeta">${esc(g.sub)} · 임장 <b>${esc(g.teacher)}</b></div></div>
+        <div class="gcount"><div class="cn">${g.students.length}</div><div class="cl">명</div></div>
+        <div class="chev">›</div></div>`;
+    });
+  });
+  $('groupList').innerHTML=html;
+  document.querySelectorAll('.gcard').forEach(el=>{el.onclick=()=>openRoster(el.dataset.id)});
+}
+$('find').addEventListener('input',e=>{
+  const q=norm(e.target.value),box=$('findResult');
+  if(!q){box.innerHTML='';return;}
+  const seen={};
+  GROUPS.forEach(g=>g.students.forEach(s=>{
+    if(s.sid.includes(q)||norm(s.name).includes(q))(seen[s.sid]=seen[s.sid]||{name:s.name,sid:s.sid,groups:[]}).groups.push(g);
+  }));
+  const hits=Object.values(seen).slice(0,8);
+  box.innerHTML=hits.length?hits.map(h=>`<div class="hit">
+    <div class="nm">${esc(h.name)} <span style="color:#8a857e;font-weight:600;font-size:13px">${esc(h.sid)}</span></div>
+    <div class="gg">${h.groups.map(g=>`· ${esc(g.cat)} — <b>${esc(g.name)}</b> (${esc(g.sub)}, 임장 ${esc(g.teacher)})`).join('<br>')}</div>
+  </div>`).join(''):`<div class="hit">일치하는 학생이 없습니다.</div>`;
+});
+
+let cur=null;
+function keyFor(){return 'absent:'+cur.id;}
+function openRoster(id){
+  cur=GROUPS.find(g=>g.id===id);
+  $('home').classList.add('hidden'); $('roster').classList.remove('hidden');
+  $('rfilter').value='';
+  $('rhead').innerHTML=`<div class="rt">${esc(cur.name)}</div>
+    <div class="rm">${esc(cur.cat)} · ${esc(cur.sub)} · 임장 <b>${esc(cur.teacher)}</b></div>
+    <div class="counter">
+      <div class="big">출석 <span class="on" id="cOn">0</span><span class="sl">/</span>${cur.students.length}<span class="ab" id="cAb"></span></div>
+      <div class="bar"><i id="cBar"></i></div>
+    </div>`;
+  renderRoster(); window.scrollTo({top:0});
+}
+function renderRoster(){
+  const absent=new Set(load(keyFor()));
+  const filt=norm($('rfilter').value);
+  let html='';
+  cur.students.forEach((s,i)=>{
+    if(filt&&!s.sid.includes(filt)&&!norm(s.name).includes(filt))return;
+    const off=absent.has(s.sid);
+    html+=`<li class="${off?'off':''}" data-sid="${s.sid}">
+      <span class="idx">${i+1}</span>
+      <span class="sid">${esc(s.sid)}</span>
+      <span class="nm">${esc(s.name)}</span>
+      ${s.bus?`<span class="bus">${esc(s.bus)}</span>`:''}
+      <span class="status">${off?'미출석':'출석'}</span>
+    </li>`;
+  });
+  $('rlist').innerHTML=html;
+  document.querySelectorAll('#rlist li').forEach(li=>{li.onclick=()=>toggle(li.dataset.sid)});
+  updateCount();
+}
+function toggle(sid){
+  const set=new Set(load(keyFor()));
+  if(set.has(sid))set.delete(sid);else set.add(sid);
+  save(keyFor(),[...set]); renderRoster();
+}
+function updateCount(){
+  const absent=new Set(load(keyFor()));
+  const tot=cur.students.length;
+  const ab=cur.students.filter(s=>absent.has(s.sid));
+  const on=tot-ab.length;
+  if($('cOn'))$('cOn').textContent=on;
+  if($('cAb'))$('cAb').textContent=ab.length?`· 미출석 ${ab.length}명`:'';
+  if($('cBar'))$('cBar').style.width=(tot?on/tot*100:0)+'%';
+  $('absent').innerHTML=ab.length
+    ? `<span class="hd">미출석 ${ab.length}명</span><br>${ab.map((s,i)=>`${i+1}. ${esc(s.name)} <span style="color:#8a857e;font-weight:600">${esc(s.sid)}</span>`).join('<br>')}`
+    : `<span class="ok">전원 출석</span> · 미출석 학생이 없습니다.`;
+}
+$('rfilter').addEventListener('input',renderRoster);
+$('resetAll').onclick=()=>{ if(confirm('이 그룹을 모두 출석 상태로 되돌릴까요?')){ save(keyFor(),[]); renderRoster(); } };
+$('back').onclick=()=>{ $('roster').classList.add('hidden'); $('home').classList.remove('hidden'); window.scrollTo({top:0}); };
+
+renderChips(); renderGroups();
+</script>
+</body>
+</html>
